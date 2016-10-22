@@ -115,20 +115,13 @@ function animate() {
   			vel.y = 80;
   	}
   }
-    
-  //¼²Àð
-  if(pos.x <= -46) {
-		vel.x = 0;
-		pos.x = -45.99999999;
-  }
-  else if(pos.x >= 346) {
-  		vel.x = 0;
-		pos.x = 345.99999999;
-  }
 
   // then do Euler's
   vel.add(force.clone().multiplyScalar(dt));
-  pos.add(vel.clone().multiplyScalar(dt));
+  var tmp = pos.clone().add(vel.clone().multiplyScalar(dt));
+  if(tmp.x >= 346) pos.x = 346;
+  else if(tmp.x <=-46) pos.x = -46;
+  else pos.add(vel.clone().multiplyScalar(dt));
   ball.position.copy(pos);
 
 
