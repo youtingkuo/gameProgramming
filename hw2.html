@@ -119,8 +119,14 @@ function animate() {
   // then do Euler's
   vel.add(force.clone().multiplyScalar(dt));
   var tmp = pos.clone().add(vel.clone().multiplyScalar(dt));
-  if(tmp.x >= 346) pos.x = 346;
-  else if(tmp.x <=-46) pos.x = -46;
+  if(tmp.x >= 346) {
+  	pos.x = 346;
+    pos.y = tmp.y;
+  }
+  else if(tmp.x <=-46) {
+  	pos.x = -46;
+    pos.y = tmp.y;
+  }
   else pos.add(vel.clone().multiplyScalar(dt));
   ball.position.copy(pos);
 
