@@ -199,11 +199,11 @@ function animate() {
   speedControls.update();
 	keyboard.update();
   
-  if(engine) engineShow.innerHTML =  "engine¡Gon";
-  else engineShow.innerHTML =  "engine¡GOff";
+  if(engine) engineShow.innerHTML =  "engine : on";
+  else engineShow.innerHTML =  "engine : Off";
   
-  if(brakeOn) brakeShow.innerHTML = "brake¡GOn";
-  else brakeShow.innerHTML = "brake¡GOff";
+  if(brakeOn) brakeShow.innerHTML = "brake : On";
+  else brakeShow.innerHTML = "brake : Off";
   
   speedProportion = speed/80;
   //pointerProportion = pointer.rotation.z/1.5;
