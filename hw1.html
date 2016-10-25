@@ -279,6 +279,7 @@ function render() {
   renderer.clear();
   renderer.render(scene, camera);
   
+  speedCamera.position.set(30, 0, 0);
   renderer.render(sceneHUD, cameraHUD);
     renderer.setViewport(WW/1.537, HH/100, WW/3, HH/2.9);
   renderer.setScissor(WW/1.537, HH/100, WW/3, HH/2.9);
