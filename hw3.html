@@ -1,0 +1,583 @@
+<html><head>
+<style>
+#info {
+  position: absolute;
+  top: 0px;
+  font-size: 30px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+body {
+  overflow: hidden;
+}
+#pressShow {
+    position: absolute;
+    top: 440px;
+    font-size: 60px;
+    width: 100%;
+    padding:5px;
+    text-align: center;
+    color: #ffff00;
+}
+#fScoreShow {
+    position: absolute;
+	top: 320px;
+	font-size: 100px;
+	width: 100%;
+	padding: 10px;
+	text-align: center;
+	color: #ffff00
+}
+#victoryShow {
+    position: absolute;
+	top: 220px;
+	font-size: 100px;
+	width: 100%;
+	padding: 10px;
+	text-align: center;
+	color: #ffff00
+}
+#restartShow {
+    position: absolute;
+	top: 460px;
+	font-size: 40px;
+	left: 210px;
+	width: 100%;
+	padding: 10px;
+	text-align: center;
+	color: #ffff00
+}
+#scoreShow {
+    position: absolute;
+    top: 10px;
+    font-size: 40px;
+    right: 580px;
+    width: 100%;
+    padding:5px;
+    text-align: center;
+    color: #ffff00;
+}
+</style>
+</head>
+
+<body> 
+<div id="info">hw3
+</div>
+<audio id="jumpsound" style="display:none">
+<source src="https://youtingkuo.github.io/sound/jump.mp3" type='audio/mp3'>
+</audio>
+<audio id="bornsound" style="display:none">
+<source src="https://youtingkuo.github.io/sound/born.mp3" type='audio/mp3'>
+</audio>
+<audio id="victorysound" style="display:none">
+<source src="https://youtingkuo.github.io/sound/victory.mp3" type='audio/mp3'>
+</audio>
+<audio id="coinsound" style="display:none">
+<source src="https://youtingkuo.github.io/sound/coinSound.mp3" type='audio/mp3'>
+</audio>
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="https://youtingkuo.github.io/sound/rockmanBGM.mp3" type='audio/mp3'>
+</audio>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+<script type="text/javascript">
+document.oncontextmenu=function(){return false;}
+</script>
+<div id="scoreShow"></div>
+<div id="victoryShow"></div>
+<div id="fScoreShow"></div>
+<div id="restartShow"></div>
+<div id="pressShow"></div>
+
+<script>
+var camera, scene, renderer;
+var satellite, angle = 0;
+//var stats;
+var pos, vel, force;
+var clock = new THREE.Clock();
+var countX = 0;
+var scoreShow, pressShow;
+var control;
+var state = -1; // -1:準備 0:開始 1:其他
+var bornPlay = false;
+var facingLeftOrRight = true; //true:right  false:left
+
+var jumpSound, bornsound, coinSound, victorySound, restartShow, soundTrack;
+var gold = [];
+var score = 0;
+var gold1, gold2, gold3, gold4, gold5, gold6, gold7, gold8, gold9, gold10;
+///////////////////
+var rockman;
+var stArray = [];
+var baseS = 0;
+var counter = 0;
+///////////////////
+
+var keyboard = new KeyboardState();
+
+init();
+animate();
+
+function height (x) {
+	if (x < 2)
+  	return 0;
+  else if(x >= 2 && x < 36)// x > 0
+  	return 7;
+  else if(x >= 36 && x < 50) return 0;
+  else if(x >= 50 && x < 83) return 16;
+  else if(x >= 83 && x < 85) return 0;
+  else if(x >= 85 && x < 120) return 31;
+  else if(x >= 120 && x < 149.5) return 0;
+  else if(x >= 149.5 && x < 185) return 7;
+  else if(x >= 185 && x < 212.5) return 0;
+  else if(x >= 212.5 && x < 247) return 15;
+  else return 0;
+}
+
+function setUpStArray() {
+  for (var i = 0; i < 8; i++) {
+    var row = [];
+    for (var j = 0; j < 12; j++)
+      row.push(new THREE.Vector2(j * 0.094, 1 - 0.124 * i));
+    stArray.push(row);
+  }
+}
+
+function init() {
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+	
+  jumpSound = document.getElementById ('jumpsound');
+  bornSound = document.getElementById ('bornsound');
+  coinSound = document.getElementById ('coinsound');
+  victorySound = document.getElementById ('victorysound');
+	soundTrack = document.getElementById ('soundtrack');
+  
+  pos = new THREE.Vector3(-20, 4.5, 0);
+  vel = new THREE.Vector3(0, 0, 0);
+  force = new THREE.Vector3(0, -190, 0);
+
+	scoreShow = document.getElementById("scoreShow");
+	pressShow = document.getElementById("pressShow");
+	victoryShow = document.getElementById("victoryShow");
+	fScoreShow = document.getElementById("fScoreShow");
+	restartShow = document.getElementById("restartShow");
+	pressShow.innerHTML = "press enter to begin...";
+	
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  camera = new THREE.OrthographicCamera(-50, 190, 80, -20, -10, 100);
+  camera.position.z = 10;
+  scene.add(camera);
+  
+  //control
+  THREE.ImageUtils.crossOrigin = '';
+  var texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/OthJ3c0.png');
+  var geometry = new THREE.PlaneGeometry(100, 33);
+	var material =new THREE.MeshBasicMaterial({map: texture, transparent: true, side:THREE.DoubleSide});
+	control = new THREE.Mesh( geometry, material );
+  control.position.set(70, 30, 1);
+	scene.add(control);
+
+	
+  //var texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/rc43DGq.png');
+  texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/arxbjmu.png');
+	var background = new THREE.Mesh (new THREE.PlaneGeometry (378,100), new THREE.MeshBasicMaterial({map: texture,  side:THREE.DoubleSide}));
+  background.position.y = 30;
+  background.position.x = 139;
+  scene.add (background);
+
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  setUpStArray();
+
+  // loading texture from imgur.com
+  THREE.ImageUtils.crossOrigin = '';
+  texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/IhMuX4y.png');
+  texture.wrapS = THREE.RepeatWrapping;
+  
+  // setting up texMat
+  var texMat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,  // cutout texture: set transparent: true
+    side: THREE.DoubleSide
+  });
+
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(
+    new THREE.Vector3(-8, -8, 0),
+    new THREE.Vector3(8, -8, 0),
+    new THREE.Vector3(8, 8, 0),
+    new THREE.Vector3(-8, 8, 0)
+  );
+  
+  var face;
+  face = new THREE.Face3(0, 1, 2);
+  geometry.faces.push(face);
+  face = new THREE.Face3(0, 2, 3);
+  geometry.faces.push(face);
+
+  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[1][1], stArray[0][1]]);
+  geometry.faceVertexUvs[0].push([stArray[1][0], stArray[0][1], stArray[0][0]]);
+
+  geometry.computeBoundingSphere();
+  geometry.computeFaceNormals();
+  geometry.computeVertexNormals();
+
+  rockman = new THREE.Mesh(geometry, texMat);
+  //scene.add(rockman);
+  rockman.position.set(-20, 4.5, 0);
+  
+  soundtrack.volume = 0.5;
+  victorySound.volume = 0.5;
+  bornSound.volume = 0.3;
+  jumpSound.volume = 0.3;
+  coinSound.volume = 0.3;
+  
+  /////////////////////////////////////////////////////
+  for(var i = 1; i <= 10; i++) gold[i] = 1;
+  //gold
+  THREE.ImageUtils.crossOrigin = '';
+  var geometry = new THREE.CircleGeometry( 3, 32 );
+  var material = new THREE.MeshBasicMaterial ({map: THREE.ImageUtils.loadTexture('http://i.imgur.com/nZDfR6o.png'),  side:THREE.DoubleSide});
+	gold1 = new THREE.Mesh( geometry, material );
+	gold1.position.set(-0.7, 0.7, 0);
+	scene.add( gold1 );
+	gold2 = new THREE.Mesh( geometry, material );
+	gold2.position.set(35, 0.7, 0);
+	scene.add( gold2 );
+	gold3 = new THREE.Mesh( geometry, material );
+	gold3.position.set(82, 0.7, 0);
+	scene.add( gold3 );
+	gold4 = new THREE.Mesh( geometry, material );
+	gold4.position.set(92, 55, 0);
+	scene.add( gold4 );
+	gold5 = new THREE.Mesh( geometry, material );
+	gold5.position.set(106, 55, 0);
+	scene.add( gold5 );
+	gold6 = new THREE.Mesh( geometry, material );
+	gold6.position.set(118, 0.7, 0);
+	scene.add( gold6 );
+	gold7 = new THREE.Mesh( geometry, material );
+	gold7.position.set(140, 55, 0);
+	scene.add( gold7 );
+	gold8 = new THREE.Mesh( geometry, material );
+	gold8.position.set(180, 30, 0);
+	scene.add( gold8 );
+	gold9 = new THREE.Mesh( geometry, material );
+	gold9.position.set(227, 15.2, 0);
+	scene.add( gold9 );
+	gold10 = new THREE.Mesh( geometry, material );
+	gold10.position.set(255, 38, 0);
+	scene.add( gold10 );
+
+  window.addEventListener('resize', onWindowResize, false);
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function spriteAnimate(num1, num2) {
+  var geometry = rockman.geometry;
+  var st0 = stArray[num1][baseS];
+  var st1 = stArray[num1][baseS + 1];
+  var st2 = stArray[num1-1][baseS + 1];
+  var st3 = stArray[num1-1][baseS];
+
+  geometry.faceVertexUvs[0] = [];
+  geometry.faceVertexUvs[0].push([st0, st1, st2]);
+  geometry.faceVertexUvs[0].push([st0, st2, st3]);
+  geometry.uvsNeedUpdate = true;
+
+  baseS = (baseS + 1) % num2;
+  
+  if(num1 === 1 && baseS === 8) {
+  	state = 1;
+    baseS = 0;
+  }
+}
+
+function restart() {
+	vel = new THREE.Vector3(0, 0, 0);
+	pos = new THREE.Vector3(-20, 4.5, 0);
+  rockman.position.copy(pos);
+  state = 0;
+  counter = 0;
+  countX = 0;
+  baseS = 0;
+  camera.position.set(0, 0, 10);
+  soundtrack.currentTime = 0.2;
+  soundtrack.volume = 0.5;
+  for(var i = 1; i <= 10; i++) gold[i] = 1;
+  scene.add(gold1);
+  scene.add(gold2);
+  scene.add(gold3);
+  scene.add(gold4);
+  scene.add(gold5);
+  scene.add(gold6);
+  scene.add(gold7);
+  scene.add(gold8);
+  scene.add(gold9);
+  scene.add(gold10);
+  score = 0;
+  
+  bornPlay = true;
+  victorySound.currentTime = 0.0;
+  victorySound.pause();
+  victoryShow.innerHTML = " ";
+	fScoreShow.innerHTML = " ";
+	restartShow.innerHTML = " ";
+}
+
+function animate() {
+  var dt = clock.getDelta();
+  keyboard.update();
+  
+  if(bornPlay) {
+  	bornPlay = !bornPlay;
+    bornSound.play();
+  }
+  if(state === 0) pressShow.innerHTML = "";
+  
+  counter++;
+  if (counter % 4 === 0 && state === 0)
+  	spriteAnimate(1, 9);
+  else if(counter % 1 === 0 && state === 4 && facingLeftOrRight)
+  	spriteAnimate(4, 1);
+  else if(counter % 1 === 0 && state === 4 && !facingLeftOrRight) 
+  	spriteAnimate(7, 1);
+  else if(counter % 14 === 0 && state === 1 && facingLeftOrRight)
+  	spriteAnimate(2, 4);
+  else if(counter % 14 === 0 && state === 1 && !facingLeftOrRight) 
+  	spriteAnimate(6, 4);
+  else if(counter % 7 === 0 && state === 2)
+  	spriteAnimate(3, 6);
+  else if(counter % 7 === 0 && state === 3)
+  	spriteAnimate(5, 6);
+
+	if(keyboard.down("enter") && state === -1) {
+  	scene.add(rockman);
+	scene.remove(control);
+  	bornPlay = true;
+    counter = 0;
+  	state = 0;
+  }
+  else if (state != -1 && state != -2){
+
+		if(rockman.position.y <= 5.1 + height(pos.x) && state != 0) {
+  		state = 1;
+  	}
+  	if(rockman.position.y >= 5 + height(pos.x) && state != 0) {
+  		state = 4;
+  	}
+
+  	if (keyboard.down('right') || keyboard.down('left') || keyboard.down('space')) { 
+  		counter = 0;
+    	baseS = 0;
+  	}
+  
+    if (keyboard.pressed ('right')) {
+		  	vel.x = 50;
+      	if(rockman.position.y <= 4.51 + height(pos.x) && rockman.position.y >= 4.2 + height(pos.x))
+      		state = 2;
+      	facingLeftOrRight = true;
+  	}
+  	if (keyboard.pressed ('left')) {
+				vel.x = -50;
+      	if(rockman.position.y <= 4.51 + height(pos.x) && rockman.position.y >= 4.2 + height(pos.x))
+      		state = 3;
+      	facingLeftOrRight = false;
+  	}
+  	if (keyboard.up ('right') || keyboard.up ('left')) {
+  			vel.x = 0;
+      	baseS = 0;
+  	}
+  	if(pos.y <= 4.5001 + height(pos.x)) {
+  		if (keyboard.down ('up')) {
+    		jumpSound.pause();
+				jumpSound.currentTime = 0;
+    		jumpSound.play();
+  			vel.y = 90;
+        state = 4;
+  		}
+  	}
+  
+  // then do Euler's
+  	vel.add(force.clone().multiplyScalar(dt));
+
+    // determine whether it is possible to make the horizontal move
+  	var sign = (vel.x) > 0 ? +1 : -1;
+  	if (pos.y <= height(pos.x + 1.5*sign)) {  // blocked
+  		vel.x = 0;
+		}  
+  
+  	var tmp = pos.clone().add(vel.clone().multiplyScalar(dt));
+  	if(tmp.x >= 325.5) {
+  		pos.x = 325.5;
+    	pos.y = tmp.y;
+  	}
+  	else if(tmp.x <=-44.5) {
+  		pos.x = -44.5;
+    	pos.y = tmp.y;
+  	}
+  	else pos.add(vel.clone().multiplyScalar(dt));
+  	rockman.position.copy(pos);
+
+
+		if(vel.x > 0 && countX >= 60) {
+  		var tmp = camera.position.x + vel.clone().multiplyScalar(dt).x;
+  		if(tmp >137.5) {
+    		camera.position.x = 137.5;
+    	}
+  		else camera.position.x += vel.clone().multiplyScalar(dt).x;
+  	}
+  	else if(vel.x < 0 && countX <= 0) {
+  		var tmp = camera.position.x + vel.clone().multiplyScalar(dt).x;
+  		if(tmp < 0) {
+    		camera.position.x = 0;
+      }
+  		else camera.position.x += vel.clone().multiplyScalar(dt).x;
+  	}
+  	else if(pos.x >= -20 && pos.x <= 248) countX += vel.clone().multiplyScalar(dt).x;
+
+  	if(rockman.position.y <= 4.5 + height(pos.x) && vel.y <= 0) {
+    	vel.y *= -0.05;
+    	pos.y = 4.5001 + height(pos.x);
+  	}
+  }
+  
+  //gold
+  if(gold[1] === 1 && pos.x >= -1.75 && pos.x <= 0.73 && pos.y === 4.5001) {
+  	scene.remove(gold1);
+    score +=10;
+    gold[1] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[2] === 1 && pos.x >= 36.83 && pos.x <= 40.15 && pos.y === 4.5001) {
+  	scene.remove(gold2);
+    score += 10;
+    gold[2] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[3] === 1 && pos.x >= 83.3 && pos.x <= 84 && pos.y === 4.5001) {
+  	scene.remove(gold3);
+    score +=10;
+    gold[3] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[4] === 1 && pos.x >= 91 && pos.x <= 95 && pos.y >= 50) {
+  	scene.remove(gold4);
+    score +=10;
+    gold[4] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[5] === 1 && pos.x >= 105 && pos.x <= 109.5 && pos.y >= 50) {
+  	scene.remove(gold5);
+    score += 10;
+    gold[5] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[6] === 1 && pos.x >= 121 && pos.x <= 123 && pos.y === 4.5001) {
+  	scene.remove(gold6);
+    score += 10;
+    gold[6] = 0;
+    coinSound.pause();
+ 		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[7] === 1 && pos.x >= 139 && pos.x <= 144 && pos.y >= 50) {
+  	scene.remove(gold7);
+    score += 10;
+    gold[7] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[8] === 1 && pos.x >= 178 && pos.x <= 184 && pos.y >= 25) {
+  	scene.remove(gold8);
+    score += 10;
+    gold[8] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  }
+  else if(gold[9] === 1 && pos.x >= 224.3 && pos.x <= 232 && pos.y === 19.5001) {
+  	scene.remove(gold9);
+    score += 10;
+    gold[9] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  } 
+  else if(gold[10] === 1 && pos.x >= 254.4 && pos.x <= 258.6 && pos.y >= 37) {
+  	scene.remove(gold10);
+    score += 10;
+    gold[10] = 0;
+    coinSound.pause();
+		coinSound.currentTime = 0;
+    coinSound.play();
+  } 
+  console.log(pos.x); //330顯示分數
+  if(pos.x >= 323 && pos.y <= 4.6) state = -2;
+  if(state === -2) {
+  	soundTrack.volume = 0.0;
+    if(victorySound.currentTime <= 7.14)
+    	victorySound.play();
+		else victorySound.pause();
+    
+    vel.add(force.clone().multiplyScalar(dt));
+    vel.x = 5;
+    pos.add(vel.clone().multiplyScalar(dt));
+  	rockman.position.copy(pos);
+    
+    if(rockman.position.y <= 4.5 + height(pos.x) && vel.y <= 0) {
+    	vel.y *= -0.05;
+    	pos.y = 4.5001 + height(pos.x);
+  	}
+    
+  	if(counter % 7 === 0) spriteAnimate(3, 6);
+    
+    if(pos.x >= 328) victoryShow.innerHTML = "Game Clear ! ";
+		if(pos.x >= 335) {
+    	if(!score) fScoreShow.innerHTML = "You got " + score + " point !";
+      else fScoreShow.innerHTML = "You got " + score + " points !";
+    }
+		if(pos.x >= 343) restartShow.innerHTML = "press enter to restart...";
+  }
+  
+  if(keyboard.down("enter") && state === -2) restart();
+  	
+
+  scoreShow.innerHTML = "Score = " + score;
+  
+  requestAnimationFrame(animate);
+  render();
+}
+
+function render() {
+  renderer.render(scene, camera);
+}
+
+//window.focus();
+</script>
+</body>
+
+</html>
