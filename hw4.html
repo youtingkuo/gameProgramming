@@ -74,7 +74,7 @@ var mouse = new THREE.Vector2();
 var pickables = [];
 
 //agent
-var ARRIVAL_R = 20;
+var ARRIVAL_R = 15;
 
 var Agent = function(mesh, initPos) {
   this.pos = new THREE.Vector3();
@@ -151,12 +151,6 @@ Agent.prototype = {
     }
     this.mesh.position.copy(this.pos);
     this.mesh.rotation.y = this.angle;
-
-    // catch handling
-    if (this.pos.distanceTo(this.target) < 2) {
-      this.vel.set(0, 0, 0);
-      angle = Math.random() * Math.PI * 2;
-		}
   },
   setTarget: function(target) {
     this.target.copy(target);
@@ -179,10 +173,12 @@ Agent.prototype = {
   separationExcute: function() {
   	if(this.nbhd.length === 0) return new THREE.Vector3();;
     var sum = new THREE.Vector3();
+    var k = 12.0;
     for(var i = 0; i < this.nbhd.length; i++) {
-    	var tmp = this.pos.clone().sub(this.nbhd[i].pos);
-      tmp.divideScalar(7);
-      sum.add(tmp);
+    	var tmp = this.pos.clone().sub(this.nbhd[i].pos); //跟鄰居的距離
+      var nor = tmp.clone().normalize();
+      var tmpLen = tmp.clone().length();
+      sum.add(nor.multiplyScalar(k/tmpLen));
    	}
     return sum;
   }, 
@@ -197,7 +193,6 @@ Agent.prototype = {
     sum.divideScalar(this.nbhd.length);
 		
 		sum.sub(this.pos).divideScalar(25);
-    console.log(sum);
     return sum;
   }, 
   cohesion: function(force) {
@@ -238,7 +233,7 @@ var Obstacle = function(center, radius) {
 
 function computeNbhd() {
 	var n = agents.length;  // number of agents
-  var R = 9;
+  var R = 10;
 
   // test it with n = 5
 	for (var i = 0; i < n-1; i++) {
@@ -260,13 +255,13 @@ function resetPos() {
   var geometry = new THREE.BoxGeometry(12, 2, 5);
   var material = new THREE.MeshNormalMaterial();
   var box = new THREE.Mesh(geometry, material);
-  agents.push(new Agent(box, new THREE.Vector3(30, 0, 85), 1));
-  agents.push(new Agent(box, new THREE.Vector3(20, 0, 85), 2));
-  agents.push(new Agent(box, new THREE.Vector3(-20, 0, 85), 3));
-  agents.push(new Agent(box, new THREE.Vector3(0, 0, 85), 4));
-  agents.push(new Agent(box, new THREE.Vector3(-40, 0, 85), 5));
-  agents.push(new Agent(box, new THREE.Vector3(-60, 0, 85), 6));
-  agents.push(new Agent(box, new THREE.Vector3(-80, 0, 85), 7));
+  agents.push(new Agent(box, new THREE.Vector3(20, 0, 85), 1));
+  agents.push(new Agent(box, new THREE.Vector3(10, 0, 85), 2));
+  agents.push(new Agent(box, new THREE.Vector3(-30, 0, 85), 3));
+  agents.push(new Agent(box, new THREE.Vector3(-10, 0, 85), 4));
+  agents.push(new Agent(box, new THREE.Vector3(-50, 0, 85), 5));
+  agents.push(new Agent(box, new THREE.Vector3(-70, 0, 85), 6));
+  agents.push(new Agent(box, new THREE.Vector3(-90, 0, 85), 7));
 }
 
 $('#steer').click(function() {
@@ -283,7 +278,7 @@ function init() {
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-  camera.position.set(0, 140, 190);
+  camera.position.set(0, 150, 250);
   scene.add(camera);
 	
   steerShow = document.getElementById("steerShow");
@@ -306,13 +301,13 @@ function init() {
   var box = new THREE.Mesh(geometry, material);
 	
   //起始點亂數
-  agents.push(new Agent(box, new THREE.Vector3(30, 0, 85)));
   agents.push(new Agent(box, new THREE.Vector3(20, 0, 85)));
-  agents.push(new Agent(box, new THREE.Vector3(-20, 0, 85)));
-  agents.push(new Agent(box, new THREE.Vector3(0, 0, 85)));
-  agents.push(new Agent(box, new THREE.Vector3(-40, 0, 85)));
-  agents.push(new Agent(box, new THREE.Vector3(-60, 0, 85)));
-  agents.push(new Agent(box, new THREE.Vector3(-80, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(10, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(-30, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(-10, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(-50, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(-70, 0, 85)));
+  agents.push(new Agent(box, new THREE.Vector3(-90, 0, 85)));
   
   obstacles.push(new Obstacle(new THREE.Vector3(60, 0.5, -40), 10));
   obstacles.push(new Obstacle(new THREE.Vector3(40, 0.5, 55), 20));
