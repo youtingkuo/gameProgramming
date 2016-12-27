@@ -1,0 +1,641 @@
+<html><head>
+<style>
+	body {
+	  background-color: #fff;
+	  color: #111;
+	  margin: 0px;
+	  overflow: hidden;
+	  font-family: Monospace;
+	  font-size: 20px;
+	}
+	
+	#info {
+	  position: absolute;
+	  top: 0px;
+	  width: 100%;
+	  padding: 5px;
+	  text-align: center;
+	  color: #ffff00
+	}
+</style>
+</head>
+
+<body> 
+<div id="info">hw5
+  <br/>
+    <button id="isOn" style="width:15%">dance</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+
+
+<script>
+var robot = function (){
+	this.body = new THREE.Object3D();
+  var boxGeometry = new THREE.BoxGeometry(50, 80, 30);
+  THREE.ImageUtils.crossOrigin = '';
+  var texture = THREE.ImageUtils.loadTexture('http://i.imgur.com/gyZe4Q5.png');
+  this.bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshLambertMaterial({map: texture}));
+  this.bodyMesh.position.set(0, 110, 0);
+  this.body.add(this.bodyMesh);
+  
+  var headMaterialArray = [];
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/dV4fDhr.png'), side:THREE.DoubleSide}));
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/dV4fDhr.png'), side:THREE.DoubleSide}));
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/O5v9bWa.png'), side:THREE.DoubleSide}));
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/86wXVHm.png'), side:THREE.DoubleSide}));
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/ulozSTL.png'), side:THREE.DoubleSide}));
+  headMaterialArray.push(new THREE.MeshLambertMaterial({
+    map: THREE.ImageUtils.loadTexture('http://i.imgur.com/dV4fDhr.png'), side:THREE.DoubleSide}));
+    
+  this.h = new THREE.Mesh(new THREE.BoxGeometry(40, 30, 40), new THREE.MeshFaceMaterial(headMaterialArray));
+  this.head = new THREE.Object3D();
+  this.head.add(this.h);
+  this.h.position.set(0, 15, 0);
+  this.body.add(this.head);
+  this.head.position.set(0, 150, 0);
+  
+  var boxGeometry = new THREE.BoxGeometry(10, 30, 10);
+  this.arm = new THREE.Mesh(boxGeometry, new THREE.MeshLambertMaterial({color: 0x22b14c}));
+  this.upperRightArm = new THREE.Object3D();
+  this.upperRightArm.add(this.arm);
+  this.arm.position.set(-5, -15, 0);
+  this.body.add(this.upperRightArm);
+  this.upperRightArm.position.set(-25, 150, 0);
+
+	boxGeometry = new THREE.BoxGeometry(10, 45, 10);
+  this.arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshLambertMaterial({color: 0xfed519}));
+  this.lowerRightArm = new THREE.Object3D();
+  this.lowerRightArm.position.set(0, -30, 0);
+  this.upperRightArm.add(this.lowerRightArm);
+  this.lowerRightArm.add(this.arm2);
+  this.arm2.position.set(-5, -22.5, 0);
+  
+  this.arm3 = this.arm.clone();
+  this.upperLeftArm = new THREE.Object3D();
+  this.upperLeftArm.add(this.arm3);
+  this.arm3.position.set(5, -15, 0);
+  this.body.add(this.upperLeftArm);
+  this.upperLeftArm.position.set(25, 150, 0);
+  
+  this.arm4 = this.arm2.clone();
+  this.lowerLeftArm = new THREE.Object3D();
+  this.lowerLeftArm.position.set(0, -30, 0);
+  this.upperLeftArm.add(this.lowerLeftArm);
+  this.lowerLeftArm.add(this.arm4);
+  this.arm4.position.set(5, -22.5, 0);
+  
+  boxGeometry = new THREE.BoxGeometry(15, 30, 15);
+  this.leg = new THREE.Mesh(boxGeometry, new THREE.MeshLambertMaterial({color: 0x3f48cc}));
+  this.upperRightLeg = new THREE.Object3D();
+  this.upperRightLeg.add(this.leg);
+  this.leg.position.set(0, -15, 0);
+  this.body.add(this.upperRightLeg);
+  this.upperRightLeg.position.set(-11, 70, 0);
+  
+	boxGeometry = new THREE.BoxGeometry(15, 45, 15);
+  this.leg2 = new THREE.Mesh(boxGeometry, new THREE.MeshLambertMaterial({color: 0x3f48cc}));
+  this.lowerRightLeg = new THREE.Object3D();
+  this.lowerRightLeg.position.set(0, -30, 0);
+  this.upperRightLeg.add(this.lowerRightLeg);
+  this.lowerRightLeg.add(this.leg2);
+  this.leg2.position.set(0, -22.5, 0);
+  
+  this.leg3 = this.leg.clone();
+  this.upperLeftLeg = new THREE.Object3D();
+  this.upperLeftLeg.add(this.leg3);
+  this.leg3.position.set(0, -15, 0);
+  this.body.add(this.upperLeftLeg);
+  this.upperLeftLeg.position.set(11, 70, 0);
+  
+  this.leg4 = this.leg2.clone();
+  this.lowerLeftLeg = new THREE.Object3D();
+  this.lowerLeftLeg.position.set(0, -30, 0);
+  this.upperLeftLeg.add(this.lowerLeftLeg);
+  this.lowerLeftLeg.add(this.leg4);
+  this.leg4.position.set(0, -22.5, 0);
+}
+/*
+robot.prototype.set = function(){
+	
+}
+*/
+
+var scene, renderer, camera, controls;
+var body, lowerRightArm, upperRightArm, lowerLeftArm, upperLeftArm;
+var lowerRightLeg, upperRightLeg, lowerLeftLeg, upperLeftLeg;
+var head;
+var dance = false;
+var dancer = [];
+
+var gcontrols;
+var torsoTurn = 0;
+var clock = new THREE.Clock();
+var period = 6;
+
+var pose0 = {
+	headX: 0.0, headY: 0.0, headZ: 0.0, bodyX: 0.0, bodyY: 0.0, bodyZ: 0.0, rightShoulderX: 0.0, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: 0.0, leftShoulderX: 0.0, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: 0.0, rightThighX: 0.0, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.0, leftThighX: 0.0, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.0,
+};
+var pose1 = {
+	headX: 0.0, headY: 0.0, headZ: 0.0, bodyX: 0.0, bodyY: 0.0, bodyZ: 0.0, rightShoulderX: 0.0, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -1.6020699532402927, leftShoulderX: 0.0, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -1.6020699532402927, rightThighX: 0.0, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.0, leftThighX: -1.049807281763714, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 1.2582244780220397,
+};
+var pose2 = {
+	headX: 0.0, headY: 0.0, headZ: 0.0, bodyX: 0.0, bodyY: 0.0, bodyZ: 0.0, rightShoulderX: -0.9796573947906584, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -0.6199589645968628, leftShoulderX: 0.2774446706729319, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -1.6020699532402927, rightThighX: 0.3240256897786382, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.40519093360031794, leftThighX: -0.6726766621246371, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.06397751583162914,
+};
+var pose3 = {
+	headX: 0.0, headY: 0.0, headZ: 0.0, bodyX: 0.0, bodyY: 0.0, bodyZ: 0.0, rightShoulderX: 0.0, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -1.6020699532402927, leftShoulderX: 0.0, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -1.6020699532402927, rightThighX: -1.049807281763714, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 1.2582244780220397, leftThighX: 0.0, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.0,
+};
+var pose4 = {
+	headX: 0.0, headY: 0.0, headZ: 0.0, bodyX: 0.0, bodyY: 0.0, bodyZ: 0.0, rightShoulderX: 0.2774446706729319, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -1.6020699532402927, leftShoulderX: -0.9796573947906584, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -0.6199589645968628, rightThighX: -0.6726766621246371, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.06397751583162914, leftThighX: 0.3240256897786382, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.40519093360031794,
+};
+var pose5 = {
+	headX: 0.0, headY: 0.11759409475261862, headZ: 0.0, bodyX: 0.0, bodyY: -0.15810796950323108, bodyZ: 0.0, rightShoulderX: -1.3837259158325268, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -0.3954764529069359, leftShoulderX: 0.6815131917147998, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -0.7041399064805853, rightThighX: 0.27014988697305564, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.3412134177686888, leftThighX: -0.29554604248556005, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.426516772210861,
+};
+var pose6 = {
+	headX: 0.0, headY: 0.11759409475261862, headZ: 0.0, bodyX: 0.0, bodyY: -0.5, bodyZ: 0.0, rightShoulderX: -0.8449678877767024, rightShoulderY: 0.0, rightShoulderZ: 0.0, rightElbowX: -0.19905425517824993, leftShoulderX: 0.5468236847008439, leftShoulderY: 0.0, leftShoulderZ: 0.0, leftElbowX: -1.8546127788914604, rightThighX: -0.026167028457647845, rightThighY: 0.0, rightThighZ: 0.0, rightCalfX: 0.1706067088843444, leftThighX: 0.027708774347934728, leftThighY: 0.0, leftThighZ: 0.0, leftCalfX: 0.06397751583162914,
+};
+
+//var keys = [{s: 0,pose: pose0}, {s: 0.1,pose: pose1}, {s: 0.35,pose: pose1}, {s: 0.45,pose: pose2}, {s: 0.55,pose: pose3}, {s: 0.8,pose: pose3}, {s: 0.9,pose: pose4}, {s: 1,pose: pose0}];
+var keys = [{s: 0,pose: pose0}, {s: 0.058,pose: pose1}, {s: 0.176,pose: pose1}, {s: 0.235,pose: pose2}, {s: 0.294,pose: pose3}, {s: 0.411,pose: pose3}, {s: 0.47,pose: pose4}, {s: 0.529,pose: pose6}, {s: 0.588,pose: pose5}, {s: 0.705,pose: pose5}, {s: 0.764,pose: pose6}, {s: 0.823,pose: pose5}, {s: 0.941,pose: pose5}, {s: 1,pose: pose0}];
+
+$('#isOn').click(function() {
+	dance = !dance;
+  if(!dance) {
+  	clock = new THREE.Clock();
+  	clock.stop();
+    $(this).text("dance");
+  }
+  else {
+  	clock.start();
+    $(this).text("stand");
+  }
+});
+
+init();
+animate();
+
+function init() {
+
+	var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.setClearColor(0x888888);
+
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+	
+  var light = new THREE.PointLight(0xffffff, 1);
+  light.position.set(100, 500, 700);
+  scene.add(light);
+  var light2 = new THREE.PointLight(0xffffff, 1);
+  light2.position.set(100, 500, -700);
+  scene.add(light2);
+  
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
+  camera.position.set(-50, 180, 680);
+  //camera.lookAt(new THREE.Vector3(0, 0, 0));
+  scene.add(camera);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	var gridXZ = new THREE.GridHelper(200, 20);
+  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  gridXZ.position.set(0, -50, 0);
+  scene.add(gridXZ);
+  window.addEventListener('resize', onWindowResize, false);
+
+  /////////////////////////////////////////////////
+  for(var i = 0; i <= 5; i++) {
+  	dancer[i] = new robot();
+  	scene.add(dancer[i].body);
+  }
+  dancer[0].body.position.set(0, -45, 95);
+  dancer[1].body.position.set(-60, -45, 0);
+  dancer[2].body.position.set(60, -45, 0);
+  dancer[3].body.position.set(-100, -45, -95);
+  dancer[4].body.position.set(0, -45, -95);
+  dancer[5].body.position.set(100, -45, -95);
+ 
+	////////////////////////////////////////////////////////////   
+	// intial values must be POSITIVE
+  gcontrols = {
+  	headX: 0.0,
+    headY: 0.0,
+    headZ: 0.0,
+    bodyX: 0.0,
+    bodyY: 0.0,
+    bodyZ: 0.0,
+		rightShoulderX: 0.0,
+		rightShoulderY: 0.0,
+    rightShoulderZ: 0.0,
+    rightElbowX: 0.0,
+    leftShoulderX: 0.0,
+		leftShoulderY: 0.0,
+    leftShoulderZ: 0.0,
+    leftElbowX: 0.0,
+    rightThighX: 0.0,
+		rightThighY: 0.0,
+    rightThighZ: 0.0,
+    rightCalfX: 0.0,
+    leftThighX: 0.0,
+		leftThighY: 0.0,
+    leftThighZ: 0.0,
+    leftCalfX: 0.0,
+  };
+
+  var gui = new dat.GUI({load: loadJSON(), preset:'Default'});
+  gui.remember (gcontrols);
+  gui.close();
+  gui.domElement.id = 'gui';
+  var headControl = gui.addFolder('head');
+  headControl.add(gcontrols, 'headX', -0.5, 0.5);
+  headControl.add(gcontrols, 'headY', -0.8, 0.8);
+  headControl.add(gcontrols, 'headZ', -0.5, 0.5);
+  var bodyControl = gui.addFolder('body');
+  bodyControl.add(gcontrols, 'bodyX', -0.3, 0.3);
+  bodyControl.add(gcontrols, 'bodyY', -0.5, 0.5);
+  bodyControl.add(gcontrols, 'bodyZ', -0.2, 0.2);
+  var armControl = gui.addFolder('arm');
+  var leftArmControl = armControl.addFolder('leftArm');
+  leftArmControl.add(gcontrols, 'leftShoulderX', -3, 1);
+  leftArmControl.add(gcontrols, 'leftShoulderY', -1, 1);
+  leftArmControl.add(gcontrols, 'leftShoulderZ', 0, 2.2);
+  leftArmControl.add(gcontrols, 'leftElbowX', -2.5, 0);
+  var rightArmControl = armControl.addFolder('rightArm');
+  rightArmControl.add(gcontrols, 'rightShoulderX', -3, 1);
+  rightArmControl.add(gcontrols, 'rightShoulderY', -1, 1);
+  rightArmControl.add(gcontrols, 'rightShoulderZ', -2.2, 0);
+  rightArmControl.add(gcontrols, 'rightElbowX', -2.5, 0);
+  var legControl = gui.addFolder('leg');
+  var leftLegControl = legControl.addFolder('leftLeg');
+  leftLegControl.add(gcontrols, 'leftThighX', -1.4, 1);
+  leftLegControl.add(gcontrols, 'leftThighY', -0.5, 0.5);
+  leftLegControl.add(gcontrols, 'leftThighZ', 0, 0.5);
+  leftLegControl.add(gcontrols, 'leftCalfX', 0, 1.9);
+  var rightLegControl = legControl.addFolder('rightLeg');
+  rightLegControl.add(gcontrols, 'rightThighX', -1.4, 1);
+  rightLegControl.add(gcontrols, 'rightThighY', -0.5, 0.5);
+  rightLegControl.add(gcontrols, 'rightThighZ', -0.5, 0);
+  rightLegControl.add(gcontrols, 'rightCalfX', 0, 1.9);
+}
+
+function loadJSON() {
+	return {
+  "preset": "pose2",
+  "remembered": {
+    "Default": {
+      "0": {
+        "headX": 0,
+        "headY": 0,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": 0,
+        "bodyZ": 0,
+        "leftShoulderX": 0,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": 0,
+        "rightShoulderX": 0,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": 0,
+        "leftThighX": 0,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0,
+        "rightThighX": 0,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0
+      }
+    },
+    "pose1": {
+      "0": {
+        "headX": 0,
+        "headY": 0,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": 0,
+        "bodyZ": 0,
+        "leftShoulderX": 0,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -1.6020699532402927,
+        "rightShoulderX": 0,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -1.6020699532402927,
+        "leftThighX": -1.049807281763714,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 1.2582244780220397,
+        "rightThighX": 0,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0
+      }
+    },
+    "pose2": {
+      "0": {
+        "headX": 0,
+        "headY": 0,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": 0,
+        "bodyZ": 0,
+        "leftShoulderX": 0.2774446706729319,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -1.6020699532402927,
+        "rightShoulderX": -0.9796573947906584,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -0.6199589645968628,
+        "leftThighX": -0.6726766621246371,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0.06397751583162914,
+        "rightThighX": 0.3240256897786382,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0.40519093360031794
+      }
+    },
+    "pose3": {
+      "0": {
+        "headX": 0,
+        "headY": 0,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": 0,
+        "bodyZ": 0,
+        "leftShoulderX": 0,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -1.6020699532402927,
+        "rightShoulderX": 0,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -1.6020699532402927,
+        "leftThighX": 0,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0,
+        "rightThighX": -1.049807281763714,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 1.2582244780220397
+      }
+    },
+    "pose4": {
+            "0": {
+        "headX": 0,
+        "headY": 0,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": 0,
+        "bodyZ": 0,
+        "leftShoulderX": -0.9796573947906584,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -0.6199589645968628,
+        "rightShoulderX": 0.2774446706729319,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -1.6020699532402927,
+        "leftThighX": 0.3240256897786382,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0.40519093360031794,
+        "rightThighX": -0.6726766621246371,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0.06397751583162914
+      }
+    },
+    "pose5": {
+      "0": {
+        "headX": 0,
+        "headY": 0.11759409475261862,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": -0.15810796950323108,
+        "bodyZ": 0,
+        "leftShoulderX": 0.6815131917147998,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -0.7041399064805853,
+        "rightShoulderX": -1.3837259158325268,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -0.3954764529069359,
+        "leftThighX": -0.29554604248556005,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0.426516772210861,
+        "rightThighX": 0.27014988697305564,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0.3412134177686888
+      }
+    },
+    "pose6": {
+      "0": {
+        "headX": 0,
+        "headY": -0.3059108720562823,
+        "headZ": 0,
+        "bodyX": 0,
+        "bodyY": -0.5,
+        "bodyZ": 0,
+        "leftShoulderX": 0.5468236847008439,
+        "leftShoulderY": 0,
+        "leftShoulderZ": 0,
+        "leftElbowX": -1.8546127788914604,
+        "rightShoulderX": -0.8449678877767024,
+        "rightShoulderY": 0,
+        "rightShoulderZ": 0,
+        "rightElbowX": -0.19905425517824993,
+        "leftThighX": 0.027708774347934728,
+        "leftThighY": 0,
+        "leftThighZ": 0,
+        "leftCalfX": 0.06397751583162914,
+        "rightThighX": -0.026167028457647845,
+        "rightThighY": 0,
+        "rightThighZ": 0,
+        "rightCalfX": 0.1706067088843444
+      }
+    }
+  },
+  "closed": false,
+  "folders": {
+    "head": {
+      "preset": "Default",
+      "closed": true,
+      "folders": {}
+    },
+    "body": {
+      "preset": "Default",
+      "closed": true,
+      "folders": {}
+    },
+    "arm": {
+      "preset": "Default",
+      "closed": true,
+      "folders": {
+        "leftArm": {
+          "preset": "Default",
+          "closed": true,
+          "folders": {}
+        },
+        "rightArm": {
+          "preset": "Default",
+          "closed": true,
+          "folders": {}
+        }
+      }
+    },
+    "leg": {
+      "preset": "Default",
+      "closed": true,
+      "folders": {
+        "leftLeg": {
+          "preset": "Default",
+          "closed": true,
+          "folders": {}
+        },
+        "rightLeg": {
+          "preset": "Default",
+          "closed": true,
+          "folders": {}
+        }
+      }
+    }
+  }
+}
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  
+  if(dance) {
+    var t = clock.getElapsedTime() % period;
+  	var s = t / period;
+  	for (var i = keys.length - 1; i >= 0; i--) {
+    	if (s > keys[i].s)
+    		break;
+  	}
+    for(var j = 0; j <= 5; j++) {
+  		var tt = (s - keys[i].s) / (keys[i + 1].s - keys[i].s);
+  		var angle = (1 - tt) * keys[i].pose.headX + tt * keys[i + 1].pose.headX;
+  		dancer[j].head.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.headY + tt * keys[i + 1].pose.headY;
+  		dancer[j].head.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.headZ + tt * keys[i + 1].pose.headZ;
+  		dancer[j].head.rotation.z = angle;
+    	angle = (1 - tt) * keys[i].pose.bodyX + tt * keys[i + 1].pose.bodyX;
+  		dancer[j].body.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.bodyY + tt * keys[i + 1].pose.bodyY;
+  		dancer[j].body.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.bodyZ + tt * keys[i + 1].pose.bodyZ;
+  		dancer[j].body.rotation.z = angle;
+    	angle = (1 - tt) * keys[i].pose.leftShoulderX + tt * keys[i + 1].pose.leftShoulderX;
+  		dancer[j].upperLeftArm.rotation.x = angle;
+    	angle = (1 - tt) * keys[i].pose.leftShoulderY + tt * keys[i + 1].pose.leftShoulderY;
+  		dancer[j].upperLeftArm.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.leftShoulderZ + tt * keys[i + 1].pose.leftShoulderZ;
+    	dancer[j].upperLeftArm.rotation.z = angle;
+    	angle = (1 - tt) * keys[i].pose.leftElbowX + tt * keys[i + 1].pose.leftElbowX;
+  		dancer[j].lowerLeftArm.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.rightShoulderX + tt * keys[i + 1].pose.rightShoulderX;
+  		dancer[j].upperRightArm.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.rightShoulderY + tt * keys[i + 1].pose.rightShoulderY;
+  		dancer[j].upperRightArm.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.rightShoulderZ + tt * keys[i + 1].pose.rightShoulderZ;
+  		dancer[j].upperRightArm.rotation.z = angle;
+  		angle = (1 - tt) * keys[i].pose.rightElbowX + tt * keys[i + 1].pose.rightElbowX;
+  		dancer[j].lowerRightArm.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.leftThighX + tt * keys[i + 1].pose.leftThighX;
+  		dancer[j].upperLeftLeg.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.leftThighY + tt * keys[i + 1].pose.leftThighY;
+  		dancer[j].upperLeftLeg.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.leftThighZ + tt * keys[i + 1].pose.leftThighZ;
+  		dancer[j].upperLeftLeg.rotation.z = angle;
+  		angle = (1 - tt) * keys[i].pose.leftCalfX + tt * keys[i + 1].pose.leftCalfX;
+  		dancer[j].lowerLeftLeg.rotation.x = angle;
+  		angle = (1 - tt) * keys[i].pose.rightThighX + tt * keys[i + 1].pose.rightThighX;
+  		dancer[j].upperRightLeg.rotation.x = angle;
+    	angle = (1 - tt) * keys[i].pose.rightThighY + tt * keys[i + 1].pose.rightThighY;
+  		dancer[j].upperRightLeg.rotation.y = angle;
+  		angle = (1 - tt) * keys[i].pose.rightThighZ + tt * keys[i + 1].pose.rightThighZ;
+  		dancer[j].upperRightLeg.rotation.z = angle;
+  		angle = (1 - tt) * keys[i].pose.rightCalfX + tt * keys[i + 1].pose.rightCalfX;
+  		dancer[j].lowerRightLeg.rotation.x = angle;
+    }
+  }
+  else {
+  	for(var i = 0; i <= 5; i++) {
+    	dancer[i].upperRightArm.rotation.order = 'ZXY';
+  
+  		dancer[i].head.rotation.x = gcontrols.headX; 
+  		dancer[i].head.rotation.y = gcontrols.headY; 
+  		dancer[i].head.rotation.z = gcontrols.headZ; 
+  
+  		dancer[i].body.rotation.x = gcontrols.bodyX; 
+  		dancer[i].body.rotation.y = gcontrols.bodyY;
+  		dancer[i].body.rotation.z = gcontrols.bodyZ; 
+  
+  		dancer[i].upperRightArm.rotation.x = gcontrols.rightShoulderX; 
+  		dancer[i].upperRightArm.rotation.y = gcontrols.rightShoulderY; 
+  		dancer[i].upperRightArm.rotation.z = gcontrols.rightShoulderZ; 
+  
+  		dancer[i].upperLeftArm.rotation.x = gcontrols.leftShoulderX; 
+  		dancer[i].upperLeftArm.rotation.y = gcontrols.leftShoulderY; 
+  		dancer[i].upperLeftArm.rotation.z = gcontrols.leftShoulderZ; 
+  
+  		dancer[i].upperRightLeg.rotation.x = gcontrols.rightThighX; 
+  		dancer[i].upperRightLeg.rotation.y = gcontrols.rightThighY; 
+  		dancer[i].upperRightLeg.rotation.z = gcontrols.rightThighZ; 
+  
+  		dancer[i].upperLeftLeg.rotation.x = gcontrols.leftThighX; 
+  		dancer[i].upperLeftLeg.rotation.y = gcontrols.leftThighY; 
+  		dancer[i].upperLeftLeg.rotation.z = gcontrols.leftThighZ; 
+
+  		dancer[i].lowerLeftArm.rotation.x = gcontrols.leftElbowX; 
+  		dancer[i].lowerRightArm.rotation.x = gcontrols.rightElbowX; 
+  
+  		dancer[i].lowerLeftLeg.rotation.x = gcontrols.leftCalfX; 
+  		dancer[i].lowerRightLeg.rotation.x = gcontrols.rightCalfX; 
+    }
+  }
+  
+  render();
+}
+
+function onWindowResize() {
+  var width = window.innerWidth,
+      height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+function render() {
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+
+</html>
