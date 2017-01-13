@@ -1,0 +1,395 @@
+<html><head>
+<style>
+	body {
+	  background-color: #fff;
+	  color: #111;
+	  margin: 0px;
+	  overflow: hidden;
+	  font-family: Monospace;
+	  font-size: 20px;
+	}
+	
+	#info {
+	  position: absolute;
+	  top: 0px;
+	  width: 100%;
+	  padding: 5px;
+	  text-align: center;
+	  color: #ffff00
+	}
+	
+	a {
+	  color: #00ffff
+	}
+	
+	strong {
+	  color: red
+	}
+	
+	#container {
+	  z-index: 0;
+	  left: 0px;
+	  top: 0px;
+	  overflow: hidden;
+	  position: absolute;
+	  width: 100%;
+	  height: 100%;
+	}
+</style>
+</head>
+
+<body> 
+<div id="info">
+  hw6
+  <br>
+  <button id="throw" style="width:20%">Throw</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://rawgit.com/jyunming-chen/game3js/master/js/ccdbox.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+
+<script>
+var scene, renderer, camera;
+var controls;
+var lowerArm, upperArm;
+var trashCan;
+var gcontrols;
+var clock = new THREE.Clock();
+var ball, ballP, ballV, ballF;
+var frontHitDetect = true;
+var backHitDetect = true;
+var ballArray = [];
+var ts;
+var count = 0;
+var keyboard = new KeyboardState();
+var lastPos = new THREE.Vector3();
+var keys = [
+  [0, [-40, 55, -10]],
+  [1, [-40, 55, 100]]
+];
+
+$("#throw").click(function() {
+  ts = clock.getElapsedTime();
+  tsphere.material.visible = true;
+	update.release = false;
+  frontHitDetect = true;
+  backHitDetect = true;
+  
+  for(var i = 0; i < ballArray.length; i++) 
+  	scene.remove(ballArray[i]);
+  count = 0;
+});
+
+var gcontrols;
+var theta1 = 0,
+  theta2 = 0,
+  theta3 = 0, theta4 = 0;
+var tsphere;
+var target;
+
+var axes = [];
+var joints = [];
+
+init();
+animate();
+
+////////////////////////////////////////////////////////
+function fk(q, joints) {
+  var m = new THREE.Matrix4();
+
+  var localzero = new THREE.Vector3(0, 0, 0);
+  m.makeTranslation(0, 0, -15);
+  m.multiply(new THREE.Matrix4().makeTranslation(-25, 100, 0));
+  localzero.applyMatrix4(m);
+  joints[0].copy(localzero);
+
+  m.multiply(new THREE.Matrix4().makeRotationZ(q[0])); // 'ZXY'
+  m.multiply(new THREE.Matrix4().makeRotationX(q[1]));
+  m.multiply(new THREE.Matrix4().makeRotationY(q[2]));
+  m.multiply(new THREE.Matrix4().makeTranslation(0, -40, 0));
+  localzero.set(0, 0, 0);
+  localzero.applyMatrix4(m);
+  joints[1].copy(localzero);
+
+  m.multiply(new THREE.Matrix4().makeRotationX(q[3]));
+  m.multiply(new THREE.Matrix4().makeTranslation(0, -40, 0));
+  localzero.set(0, 0, 0);
+  localzero.applyMatrix4(m);
+  joints[2].copy(localzero);
+}
+
+/////////////////////////////////////////////////////////////
+
+function setarm() {
+  var axis = new CCD_axis(new THREE.Vector3(0, 0, 1), 0);
+  axis.limits = new THREE.Vector2(-6, 0);
+  axes.push(axis);
+  var axis = new CCD_axis(new THREE.Vector3(1, 0, 0), 0);
+  axis.limits = new THREE.Vector2(-2.5, 2.5);
+  axes.push(axis);
+  var axis = new CCD_axis(new THREE.Vector3(0, 1, 0), 0);
+  axis.limits = new THREE.Vector2(.3, .30); //,2.5); 
+  axes.push(axis);
+  var axis = new CCD_axis(new THREE.Vector3(1, 0, 0), 1);
+  axis.limits = new THREE.Vector2(-2.7, -0.01);
+  axes.push(axis);
+}
+
+////////////////////////////////////////////////////////////////
+
+function init() {
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.setClearColor(0x888888);
+
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
+  camera.position.set(-400, 160, 450)
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  scene.add(camera);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  body = new THREE.Object3D();
+  var boxGeometry = new THREE.BoxGeometry(50, 100, 30);
+  var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  bodyMesh.position.set(0, 50, 0);
+  body.add(bodyMesh);
+  scene.add(body);
+  body.position.set(0, 0, -15);
+
+  var boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+  var arm = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  upperArm = new THREE.Object3D();
+  upperArm.add(arm);
+  arm.position.set(-5, -20, 0);
+  body.add(upperArm);
+  upperArm.position.set(-25, 100, 0);
+
+  boxGeometry = new THREE.BoxGeometry(10, 40, 10);
+  arm2 = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  lowerArm = new THREE.Object3D();
+  lowerArm.position.set(0, -40, 0);
+  upperArm.add(lowerArm);
+  lowerArm.add(arm2);
+  arm2.position.set(-5, -20, 0);
+
+  var gridXZ = new THREE.GridHelper(360, 30);
+  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  scene.add(gridXZ);
+
+  tsphere = new THREE.Mesh(new THREE.BoxGeometry(7, 7, 7), new THREE.MeshBasicMaterial({
+    wireframe: true
+  }));
+  scene.add(tsphere);
+
+  window.addEventListener('resize', onWindowResize, false);
+
+  /////////////////////////////////////////
+  target = new THREE.Vector3();
+  target.set(-40, 55, -10);
+  setarm();
+  for (var i = 0; i < 3; i++)
+    joints[i] = new THREE.Vector3();
+
+
+  ball = new THREE.Mesh(new THREE.SphereGeometry(7), new THREE.MeshNormalMaterial({
+    wireframe: true
+  }));
+  scene.add(ball);
+  ballP = new THREE.Vector3();
+  ballV = new THREE.Vector3(0, 0, 0);
+  ballF = new THREE.Vector3(0, -120, 0);
+  
+  //dat
+  gcontrols = {
+  	T: .54,
+    airResistance: true
+  }
+  
+  var gui = new dat.GUI();
+  gui.domElement.id = 'gui';
+  gui.add(gcontrols, 'T', .15, 1.5);
+  gui.add(gcontrols, 'airResistance');
+  
+  makeTrashCan();
+}
+
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  keyboard.update();
+  var dt = clock.getDelta();
+  if(ballV.length() != 0 && (count%7) === 0) 
+  	ballUpdate(1);
+  count++;
+  update(dt);
+  render();
+}
+
+function makeTrashCan() { //高度20
+	trashCan = new THREE.Object3D();
+  trashCan.position.set(-40, 0, 170);
+  scene.add(trashCan);
+  var geometry = new THREE.CylinderGeometry( 20, 20, 20, 32, 1, true );
+	var material = new THREE.MeshNormalMaterial( {side: THREE.DoubleSide} );
+	var cylinder1 = new THREE.Mesh( geometry, material );
+  cylinder1.position.set(0, 10, 0);
+	trashCan.add( cylinder1 );
+  geometry = new THREE.CylinderGeometry( 22, 22, 20, 32, 1, true );
+  var cylinder2 = new THREE.Mesh( geometry, material );
+  cylinder2.position.set(0, 10, 0);
+	trashCan.add( cylinder2 );
+  geometry = new THREE.RingGeometry( 20, 22, 32 );
+  var ring1 = new THREE.Mesh( geometry, material );
+  ring1.rotation.x = Math.PI/2;
+  ring1.position.set(0, 20, 0);
+	trashCan.add( ring1 );
+  var ring2 = ring1.clone();
+  ring2.position.set(0, 0, 0);
+  trashCan.add(ring2);
+}
+
+function makeBall() {
+	var ball = new THREE.Mesh(new THREE.SphereGeometry(7), new THREE.MeshNormalMaterial({
+    wireframe: true
+  }));
+  return ball;
+}
+
+function ballUpdate(dt) {
+  var ballc = makeBall();
+  ballc.position.copy(ball.position);
+  ballArray.push(ballc);
+  scene.add(ballArray[ballArray.length - 1]);
+}
+
+function linearTween(s, b, e) {
+  var pos = [];
+  for (var i = 0; i < 3; i++) {
+    pos.push((1 - s) * b[i] + s * e[i]);
+  }
+  return pos;
+}
+
+function keyframeInterpolate(t) {
+
+  if (ts === undefined)
+    return;
+
+  var s = (t - ts) / gcontrols.T;
+  if (s > 1) { // return end frame
+    target.set(keys[1][1][0], keys[1][1][1], keys[1][1][2])
+  } else {
+    var pos = linearTween(s, keys[0][1], keys[1][1]);
+    target.set(pos[0], pos[1], pos[2]);
+  }
+}
+
+function update(dt) {
+  update.release = update.release === undefined ? false : update.release;
+
+  keyframeInterpolate(clock.getElapsedTime());
+  tsphere.position.copy(target);
+  ball.position.copy(tsphere.position);
+
+  var theta = [0, 0, 0, -1e-2];
+
+  ik_ccd(target, theta);
+  theta1 = theta[0];
+  theta2 = theta[1];
+  theta3 = theta[2];
+  theta4 = theta[3];
+
+	//////////////////////////////////////////////////////////
+  if (!update.release && ball.position.z > 30) { // release
+    ballP.copy(ball.position);
+    // estimate release velocity
+    ballV.copy(ballP.clone().sub(lastPos).multiplyScalar(1 / dt));
+    update.release = true;
+    tsphere.material.visible = false;
+  } else {
+    lastPos.copy(ball.position);
+  }
+  
+  if (update.release) {
+  	if(ballP.y <= 27 && ballP.y >= 25) {
+    	if(ballP.z >= trashCan.position.z-23 && ballP.z <= trashCan.position.z-19) {
+      	ballV.y = 10;
+        ballP.y = 27.1;
+      }
+      else if(ballP.z <= trashCan.position.z+23 && ballP.z >= trashCan.position.z+19) {
+      	ballV.y = 10;
+        ballP.y = 27.1;
+      }
+    }
+    
+  	var p0 = new THREE.Vector3(0, 0, trashCan.position.z+13); 
+    var n = new THREE.Vector3(0, 0, -1);
+    if(ballP.clone().sub(p0).dot(n) <= 0 && backHitDetect) {
+				if(ballP.y <= 28)	ballV.z = -5;
+      	backHitDetect = !backHitDetect;
+    }
+    
+    p0 = new THREE.Vector3(0, 0, trashCan.position.z-29); 
+    if(ballP.clone().sub(p0).dot(n) <= 0 && frontHitDetect) {
+				if(ballP.y <= 28)	ballV.z = -5;
+      	frontHitDetect = !frontHitDetect;
+    }
+    
+    if(ballP.y != 7) ballV.add(ballF.clone().multiplyScalar(dt));
+    var resistance = (ballV.length()/40) * (ballV.length()/40)*(-1);
+    if(gcontrols.airResistance)
+    ballP.add(ballV.clone().normalize().multiplyScalar(dt*resistance)); //air resistance
+    
+    ballP.add(ballV.clone().multiplyScalar(dt));
+    ball.position.copy(ballP);
+    
+    if (ballP.y < 7) {
+    	ballP.y = 7;
+    	ballV.setLength(0);
+
+      if(ballP.z >= trashCan.position.z-20 && ballP.z <= trashCan.position.z+20) {
+      	var tmp =  Math.random() * 200 + 100;  //  100~300
+      	trashCan.position.z = tmp;
+      }
+  	}
+    
+  }  
+}
+
+function onWindowResize() {
+  var width = window.innerWidth,
+    height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+
+function render() {
+  upperArm.rotation.z = theta1; //-Math.PI/6;//theta1;
+  upperArm.rotation.x = theta2; //-Math.PI/3;//theta2;
+  upperArm.rotation.y = theta3; //-Math.PI/3;//theta2;
+  upperArm.rotation.order = 'ZXY';
+
+  lowerArm.rotation.x = theta4; //-Math.PI/4;//theta3;
+
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+
+</html>
