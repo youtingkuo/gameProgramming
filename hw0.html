@@ -20,8 +20,8 @@ body {
     <button id="mode" style="width:15%">run</button>
   <br/>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
-<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
 <script>
 var scene, renderer, camera;
@@ -209,7 +209,7 @@ function init() {
   mesh21 = mesh20.clone();
   mesh21.position.set(0, -15, -21);
 	train.add( mesh21 );
-  //½ü¤l
+  //Â½Ã¼Â¤l
   wheel1 = new THREE.Object3D();
   wheel2 = new THREE.Object3D();
   wheel3 = new THREE.Object3D();
@@ -257,7 +257,7 @@ function init() {
   mesh29.position.set(-20, -12.5, 30);
 	train.add( mesh29 );
   
-  //­y¹D
+  //Â­yÂ¹D
   var geometry = new THREE.PlaneGeometry( 300, 300, 32 );
   var texture31 = THREE.ImageUtils.loadTexture('http://i.imgur.com/n4tMedq.png');
   var material31 = new THREE.MeshLambertMaterial ({map: texture31, transparent: true,  side:THREE.DoubleSide});
