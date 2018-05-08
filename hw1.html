@@ -34,7 +34,7 @@ body {
 
 <body> 
 <div id="info">hw1</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js"></script>
 <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 <div id="engineShow"></div>
@@ -138,8 +138,8 @@ var fframe2 = new THREE.Mesh(new THREE.PlaneGeometry(7, 0.08), new THREE.MeshBas
     scene.add( boat );
   });
 
-  var gridXZ = new THREE.GridHelper(100, 10);
-  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  var gridXZ = new THREE.GridHelper(100, 10, 'red', 'white');
+  gridXZ.position.set(0, 0, 0);
   scene.add(gridXZ);
   
   //»ö¿öªO
