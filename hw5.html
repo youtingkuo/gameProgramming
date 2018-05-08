@@ -21,9 +21,9 @@
 </head>
 
 <body> 
-<div id="info">hw5
+<div id="info">
   <br/>
-    <button id="isOn" style="width:15%">dance</button>
+    <button id="isOn" style="width:10%">dance</button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js"></script>
 <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
@@ -210,11 +210,9 @@ function init() {
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-	var gridXZ = new THREE.GridHelper(200, 20);
-  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  var gridXZ = new THREE.GridHelper(200, 20, 'red', 'white');
   gridXZ.position.set(0, -50, 0);
   scene.add(gridXZ);
-  window.addEventListener('resize', onWindowResize, false);
 
   /////////////////////////////////////////////////
   for(var i = 0; i <= 5; i++) {

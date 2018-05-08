@@ -15,6 +15,7 @@ body {
 
 #engineShow {
     position: absolute;
+    font-size:30px;
     top: 30px;
     width: 100%;
     padding:5px;
@@ -23,7 +24,8 @@ body {
 }
 #brakeShow {
     position: absolute;
-    top: 50px;
+    font-size:30px;
+    top: 80px;
     width: 100%;
     padding:5px;
     text-align: center;
@@ -33,7 +35,7 @@ body {
 </head>
 
 <body> 
-<div id="info">hw1</div>
+<div id="info"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js"></script>
 <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
 <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
@@ -198,7 +200,7 @@ function animate() {
   speedControls.update();
 	keyboard.update();
   
-  if(engine) engineShow.innerHTML =  "engine : on";
+  if(engine) engineShow.innerHTML =  "engine : On";
   else engineShow.innerHTML =  "engine : Off";
   
   if(brakeOn) brakeShow.innerHTML = "brake : On";
